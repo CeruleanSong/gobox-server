@@ -1,8 +1,6 @@
 package main
 
 import (
-	"net/http"
-
 	"github.com/CeruleanSong/gobox-server/src/controller"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -26,7 +24,7 @@ func initialize() *echo.Echo {
 
 	e.Use(middleware.CORS())
 
-	api := e.Group("/api/v1")
+	api := e.Group("/api/v2")
 	new(controller.APIController).File(api)
 
 	return e
@@ -34,10 +32,6 @@ func initialize() *echo.Echo {
 
 func main() {
 	e := initialize()
-
-	e.GET("/", func(c echo.Context) error {
-		return c.String(http.StatusOK, "Hello, World!")
-	})
 
 	e.Logger.Fatal(e.Start(":1323"))
 }
