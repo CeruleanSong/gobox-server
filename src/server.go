@@ -9,6 +9,10 @@ import (
 func initialize() *echo.Echo {
 	e := echo.New()
 
+	// e.Use(middleware.Logger())
+	e.Use(middleware.CORS())
+	e.Use(middleware.Recover())
+
 	// client := database.Database()
 	// db, err := client.Get()
 
@@ -22,7 +26,7 @@ func initialize() *echo.Echo {
 	// 	println("oof")
 	// }
 
-	e.Use(middleware.CORS())
+	// e.Use(middleware.CORS())
 
 	api := e.Group("/api/v2")
 	new(controller.APIController).File(api)

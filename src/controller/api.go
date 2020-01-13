@@ -13,13 +13,13 @@ type APIController struct{}
 func (c *APIController) File(g *echo.Group) {
 	{
 		/* TARGET: '/api/v2/f' */
-		gFile := g.Group("/f")
+		gFile := g.Group("/file")
 
 		{
 			/* upload */
 			gFile.Any("/upload", api.FileUpload())
 			/* download */
-			gFile.Any("/download", api.FileDownload())
+			gFile.Any("/download/:id", api.FileDownload())
 		}
 	}
 }
