@@ -1,9 +1,17 @@
 package model
 
-// File u
-type File struct {
+// FileData u
+type FileData struct {
+	NAME string `json:"name" xml:"name" bson:"name"`
+	ID   string `json:"_id" xml:"_id" bson:"_id"`
+	TYPE string `json:"type" xml:"type" bson:"type"`
+}
+
+// FileResponce s
+type FileResponce struct {
 	NAME  string `json:"name" xml:"name" bson:"name"`
-	TOKEN string `json:"_id" xml:"_id" bson:"_id"`
+	ID    string `json:"_id" xml:"_id" bson:"_id"`
 	URL   string `json:"url" xml:"url"`
-	FILE  []byte `json:"file" xml:"file" bson:"file"`
+	TYPE  string `json:"type" xml:"type" bson:"type"`
+	BYTES int64  `json:"bytes" xml:"bytes"`
 }

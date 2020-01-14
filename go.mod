@@ -25,6 +25,7 @@ require (
 	github.com/labstack/echo v3.3.10+incompatible
 	github.com/labstack/echo/v4 v4.1.13
 	github.com/microcosm-cc/bluemonday v1.0.2 // indirect
+	github.com/mongodb/mongo-go-driver v1.2.1
 	github.com/pkg/errors v0.9.0 // indirect
 	github.com/ryanuber/columnize v2.1.0+incompatible // indirect
 	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect

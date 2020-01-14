@@ -1,9 +1,9 @@
 package api
 
 import (
+	"bytes"
 	"context"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -16,14 +16,13 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/valyala/fasthttp"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo/gridfs"
 )
 
 // FileUpload a
 func FileUpload() echo.HandlerFunc {
 	return func(c echo.Context) (err error) {
 
-		/* var */
-		var dir string
 		/* json */
 		var name string
 		var token string
@@ -32,7 +31,6 @@ func FileUpload() echo.HandlerFunc {
 		/* generate random hash for token */
 		g, nil := util.GenerateRandomBytes(4) // generate data for token
 		token = fmt.Sprintf("%x", g)          // create token
-		dir = "./data"                        // get directory
 
 		/* get the file from the request */
 		file, err := c.FormFile("file")
@@ -43,56 +41,53 @@ func FileUpload() echo.HandlerFunc {
 		if err != nil {
 			return err
 		}
+		fileBytes := make([]byte, file.Size)
+		data.Read(fileBytes)
 		defer data.Close()
 
 		/* file data */
-		name = file.Filename // get file name
+		name = file.Filename                   // get file name
+		url = "/api/v2/file/download/" + token // create file url
 
-		url = "http://localhost:1323" + "/api/v2/file/download/" + token // create file url
-
-		/* create directory */
-		if _, err := os.Stat(dir); os.IsNotExist(err) {
-			err = os.MkdirAll(dir, 0755)
-			if err != nil {
-				return err
-			}
-		}
-
-		/* create file */
-		out, err := os.OpenFile(dir+"/"+token, os.O_WRONLY|os.O_CREATE, 0666)
+		// Create a connection to database & collection
+		db := database.Database()
+		client, err := db.Get()
+		bucket, err := gridfs.NewBucket(client.Database("gobox"))
 		if err != nil {
 			return err
 		}
-		defer out.Close()
 
-		_, err = io.Copy(out, data)
+		// Upload the file into the database
+		err = bucket.UploadFromStreamWithID(token, name, bytes.NewReader(fileBytes))
 		if err != nil {
-			return nil
+			return err
 		}
 
-		bytes, err := ioutil.ReadAll(data)
-		fmt.Printf("size:%d", len(bytes))
+		kind, _ := filetype.Get(fileBytes)
 
-		var f = &model.File{
+		var dbEntry = &model.FileData{
+			NAME: name,
+			ID:   token,
+		}
+
+		var res = &model.FileResponce{
 			NAME:  name,
-			TOKEN: token,
+			ID:    token,
 			URL:   url,
+			BYTES: file.Size,
+			TYPE:  kind.MIME.Value,
 		}
-
-		client := database.Database()
-		db, err := client.Get()
 
 		if err == nil {
-			collection := db.Database("gobox").Collection("file")
+			collection := client.Database("gobox").Collection("file")
 			ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
-			res, _ := collection.InsertOne(ctx, f)
-			id := res.InsertedID
-			println("id: %s", id)
+			// res, _ := collection.InsertOne(ctx, f)
+			collection.InsertOne(ctx, dbEntry)
 		} else {
 			println("oof")
 		}
 
-		return c.JSON(fasthttp.StatusOK, f)
+		return c.JSON(fasthttp.StatusOK, res)
 	}
 }
 
@@ -128,7 +123,7 @@ func FileDownload() echo.HandlerFunc {
 			return err
 		}
 
-		var result model.File
+		var result model.FileData
 
 		collection := db.Database("gobox").Collection("file")
 
