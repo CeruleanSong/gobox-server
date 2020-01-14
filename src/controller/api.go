@@ -14,12 +14,18 @@ func (c *APIController) File(g *echo.Group) {
 	{
 		/* TARGET: '/api/v2/f' */
 		// gFile := g.Group("")
-
 		{
 			/* upload */
 			g.Any("/upload", api.FileUpload())
 			/* download */
 			g.Any("/download/:id", api.FileDownload())
+			/* info */
+			g.Any("/info/:id", api.FileInfo())
+		}
+
+		// gFile := g.Group("")
+		{
+			g.Any("/stats", api.Stats())
 		}
 	}
 }

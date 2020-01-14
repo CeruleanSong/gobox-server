@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/CeruleanSong/gobox-server/src/config"
 	"github.com/CeruleanSong/gobox-server/src/controller"
 	"github.com/CeruleanSong/gobox-server/src/controller/api"
 	"github.com/labstack/echo/v4"
@@ -31,6 +32,7 @@ func initialize() *echo.Echo {
 
 	apiRoute := e.Group("/api")
 	new(controller.APIController).File(apiRoute)
+
 	e.Any("/download/:id", api.FileDownload())
 
 	return e
@@ -39,5 +41,5 @@ func initialize() *echo.Echo {
 func main() {
 	e := initialize()
 
-	e.Logger.Fatal(e.Start(":1323"))
+	e.Logger.Fatal(e.Start(config.PORT))
 }
