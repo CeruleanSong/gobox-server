@@ -43,8 +43,8 @@ func FileUpload() echo.HandlerFunc {
 		defer data.Close()
 
 		/* file data */
-		name = file.Filename           // get file name
-		url = "/api/download/" + token // create file url
+		name = file.Filename       // get file name
+		url = "/download/" + token // create file url
 
 		// Create a connection to database & collection
 		db := database.Database()
