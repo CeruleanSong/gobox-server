@@ -83,7 +83,7 @@ func FileUpload() echo.HandlerFunc {
 			EXPIRES:  time.Now().Add(time.Hour * 24 * 90),
 		}
 
-		collection := client.Database("gobox").Collection("metadata")
+		collection := client.Database("gobox").Collection("fs.metadata")
 		ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
 		collection.InsertOne(ctx, dbEntry)
 
@@ -146,7 +146,7 @@ func FileInfo() echo.HandlerFunc {
 			return err
 		}
 
-		collection := client.Database("gobox").Collection("metadata")
+		collection := client.Database("gobox").Collection("fs.metadata")
 		var result model.FileData
 
 		filter := bson.M{"_id": param}
