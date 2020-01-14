@@ -46,8 +46,8 @@ func FileUpload() echo.HandlerFunc {
 		defer data.Close()
 
 		/* file data */
-		name = file.Filename                   // get file name
-		url = "/api/v2/file/download/" + token // create file url
+		name = file.Filename           // get file name
+		url = "/api/download/" + token // create file url
 
 		// Create a connection to database & collection
 		db := database.Database()
@@ -66,22 +66,27 @@ func FileUpload() echo.HandlerFunc {
 		kind, _ := filetype.Get(fileBytes)
 
 		var dbEntry = &model.FileData{
-			NAME: name,
-			ID:   token,
+			NAME:     name,
+			ID:       token,
+			BYTES:    file.Size,
+			TYPE:     kind.MIME.Value,
+			UPLOADED: time.Now(),
+			EXPIRES:  time.Now().Add(time.Hour * 24 * 90),
 		}
 
 		var res = &model.FileResponce{
-			NAME:  name,
-			ID:    token,
-			URL:   url,
-			BYTES: file.Size,
-			TYPE:  kind.MIME.Value,
+			NAME:     name,
+			ID:       token,
+			URL:      url,
+			BYTES:    file.Size,
+			TYPE:     kind.MIME.Value,
+			UPLOADED: time.Now(),
+			EXPIRES:  time.Now().Add(time.Hour * 24 * 90),
 		}
 
 		if err == nil {
-			collection := client.Database("gobox").Collection("file")
+			collection := client.Database("gobox").Collection("metadata")
 			ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
-			// res, _ := collection.InsertOne(ctx, f)
 			collection.InsertOne(ctx, dbEntry)
 		} else {
 			println("oof")

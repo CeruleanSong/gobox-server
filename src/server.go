@@ -28,7 +28,7 @@ func initialize() *echo.Echo {
 
 	// e.Use(middleware.CORS())
 
-	api := e.Group("/api/v2")
+	api := e.Group("/api")
 	new(controller.APIController).File(api)
 
 	return e
