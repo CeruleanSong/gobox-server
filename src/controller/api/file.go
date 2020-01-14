@@ -4,15 +4,12 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"io/ioutil"
-	"os"
-	"path/filepath"
 	"time"
 
 	"github.com/CeruleanSong/gobox-server/src/database"
 	util "github.com/CeruleanSong/gobox-server/src/lib"
 	"github.com/CeruleanSong/gobox-server/src/model"
-	"github.com/h2non/filetype"
+	"github.com/gabriel-vasile/mimetype"
 	"github.com/labstack/echo/v4"
 	"github.com/valyala/fasthttp"
 	"go.mongodb.org/mongo-driver/bson"
@@ -63,13 +60,14 @@ func FileUpload() echo.HandlerFunc {
 			return err
 		}
 
-		kind, _ := filetype.Get(fileBytes)
+		// kind, _ := filetype.Get(fileBytes)
+		mime := mimetype.Detect(fileBytes)
 
 		var dbEntry = &model.FileData{
 			NAME:     name,
 			ID:       token,
 			BYTES:    file.Size,
-			TYPE:     kind.MIME.Value,
+			TYPE:     mime.String(),
 			UPLOADED: time.Now(),
 			EXPIRES:  time.Now().Add(time.Hour * 24 * 90),
 		}
@@ -79,7 +77,7 @@ func FileUpload() echo.HandlerFunc {
 			ID:       token,
 			URL:      url,
 			BYTES:    file.Size,
-			TYPE:     kind.MIME.Value,
+			TYPE:     mime.String(),
 			UPLOADED: time.Now(),
 			EXPIRES:  time.Now().Add(time.Hour * 24 * 90),
 		}
@@ -100,58 +98,41 @@ func FileUpload() echo.HandlerFunc {
 func FileDownload() echo.HandlerFunc {
 	return func(c echo.Context) (err error) {
 
-		/* var */
-		var dir string = "./data"
-		/* json */
-		var name string
-		// var token string
-		// var url string
 		var fileType string
 		var param string = c.Param("id")
 
-		/* check data folder exists */
-		file, err := os.Open(dir + "/" + param)
+		db := database.Database()
+		client, err := db.Get()
+		bucket, err := gridfs.NewBucket(client.Database("gobox"))
 		if err != nil {
 			return err
 		}
 
-		buf, _ := ioutil.ReadFile(file.Name())
-		kind, err := filetype.Match(buf)
-		if err != nil {
-			fmt.Printf("err: %s", err)
-		}
-
-		fileType = kind.MIME.Value
-		client := database.Database()
-		db, err := client.Get()
+		// Upload the file into the database
+		str, err := bucket.OpenDownloadStream(param)
 		if err != nil {
 			return err
 		}
 
+		collection := client.Database("gobox").Collection("metadata")
 		var result model.FileData
 
-		collection := db.Database("gobox").Collection("file")
-
-		path := file.Name()
-		rootName := filepath.Base(path)
-
-		filter := bson.M{"_id": rootName}
+		filter := bson.M{"_id": param}
 		ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
 		err = collection.FindOne(ctx, filter).Decode(&result)
 		if err != nil {
-			println(fileType)
 			return err
 		}
-		name = result.NAME
 
-		info, err := file.Stat()
-		c.Response().Header().Set("Content-Length", fmt.Sprintf("%d", info.Size()))
+		/* set proper headers */
+		c.Response().Header().Set("Content-Length", fmt.Sprintf("%d", result.BYTES))
 		c.Response().Header().Set("Connection", "keep-alive")
 		c.Response().Header().Set("Accept-Ranges", "bytes")
-		c.Response().Header().Set("Content-Disposition", "inline; filename="+name)
+		c.Response().Header().Set("Content-Type", result.TYPE)
+		c.Response().Header().Set("Content-Disposition", "inline; filename="+result.NAME)
 
 		// return c.Blob(200, fileType, buf)
-		return c.Stream(200, fileType, (*os.File)(file))
+		return c.Stream(200, fileType, str)
 		// return c.JSON(fasthttp.StatusOK, 0)
 	}
 }
