@@ -111,7 +111,7 @@ func FileDownload() echo.HandlerFunc {
 			return c.JSON(fasthttp.StatusOK, util.ErrorFILENOTFOUND)
 		}
 
-		collection := client.Database("gobox").Collection("metadata")
+		collection := client.Database("gobox").Collection("fs.metadata")
 		var result model.FileData
 
 		filter := bson.M{"_id": param}
