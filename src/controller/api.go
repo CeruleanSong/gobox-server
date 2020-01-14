@@ -23,6 +23,11 @@ func (c *APIController) File(g *echo.Group) {
 			g.Any("/info/:id", api.FileInfo())
 		}
 
+		authGroup := g.Group("/auth")
+		{
+			authGroup.Any("/register", api.AuthRegister())
+		}
+
 		// gFile := g.Group("")
 		{
 			g.Any("/stats", api.Stats())

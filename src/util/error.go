@@ -2,6 +2,12 @@ package util
 
 import "github.com/CeruleanSong/gobox-server/src/model"
 
+// ErrorINVALIDAUTH as
+var ErrorINVALIDAUTH = &model.ErrorResponce{
+	STATUS:  500,
+	MESSAGE: "Invalid Username and/or Password",
+}
+
 // ErrorFILENOTFOUND as
 var ErrorFILENOTFOUND = &model.ErrorResponce{
 	STATUS:  404,
