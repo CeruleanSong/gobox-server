@@ -1,0 +1,7 @@
+package config
+
+// URLROOT url
+var URLROOT = "https://URL:PORT"
+
+// URLDB a
+var URLDB = "mongodb://URL:PORT/"
