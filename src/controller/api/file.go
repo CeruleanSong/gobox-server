@@ -8,7 +8,7 @@ import (
 
 	"github.com/CeruleanSong/gobox-server/src/config"
 	"github.com/CeruleanSong/gobox-server/src/database"
-	"github.com/CeruleanSong/gobox-server/src/modelil"
+	"github.com/CeruleanSong/gobox-server/src/model"
 	"github.com/CeruleanSong/gobox-server/src/util"
 	"github.com/gabriel-vasile/mimetype"
 	"github.com/labstack/echo/v4"
@@ -108,7 +108,7 @@ func FileDownload() echo.HandlerFunc {
 		// Upload the file into the database
 		str, err := bucket.OpenDownloadStream(param)
 		if err != nil {
-			return c.JSON(fasthttp.StatusOK, util.ErrorUPLOADERROR)
+			return c.JSON(fasthttp.StatusOK, util.ErrorFILENOTFOUND)
 		}
 
 		collection := client.Database("gobox").Collection("metadata")
