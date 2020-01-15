@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"log"
 	"strconv"
 	"time"
 
@@ -16,11 +15,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/valyala/fasthttp"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/gridfs"
-	"go.mongodb.org/mongo-driver/mongo/options"
-	"go.mongodb.org/mongo-driver/mongo/readconcern"
-	"go.mongodb.org/mongo-driver/mongo/writeconcern"
 )
 
 // FileUpload a
@@ -122,39 +117,18 @@ func FileDownload() echo.HandlerFunc {
 		}
 
 		collection := client.Database("gobox").Collection("fs.metadata")
+		ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
 
 		var result model.FileData
-		filter := bson.M{"_id": param}
+		filter := bson.M{"_id": bson.M{"$eq": param}}
 
-		session, err := client.StartSession()
-		mongo.WithSession(context.Background(), session, func(mctx mongo.SessionContext) error {
-
-			err = mctx.StartTransaction(options.Transaction().
-				SetReadConcern(readconcern.Snapshot()).
-				SetWriteConcern(writeconcern.New(writeconcern.WMajority())),
-			)
-			if err != nil {
-				return err
-			}
-
-			err = collection.FindOne(mctx, filter).Decode(&result)
-			if err != nil {
-				mctx.AbortTransaction(mctx)
-				return err
-			}
-
-			update := bson.M{"downloads": 1, "views": 1}
-			_, err = collection.UpdateOne(mctx, filter, update)
-			if err != nil {
-				log.Println("caught exception during transaction, aborting.")
-				mctx.AbortTransaction(mctx)
-				return err
-			}
-
-			mctx.CommitTransaction(mctx)
-
-			return nil
-		})
+		update := bson.M{"$set": bson.M{"downloads": 1 + result.DOWNLOADS, "views": 1 + result.VIEWS}}
+		collection.UpdateMany(ctx, filter, update)
+		if err != nil {
+			println("error")
+			println(err.Error())
+			return err
+		}
 
 		/* set proper headers */
 		c.Response().Header().Set("Content-Length", fmt.Sprintf("%d", result.BYTES))
@@ -266,6 +240,12 @@ func FileInfo() echo.HandlerFunc {
 			return err
 		}
 
+		filter = bson.M{"_id": bson.M{"$eq": param}}
+		update := bson.M{"$set": bson.M{"views": 1 + result.VIEWS}}
+		collection.UpdateMany(ctx, filter, update)
+		if err != nil {
+			return err
+		}
 		return c.JSON(fasthttp.StatusOK, result)
 	}
 }
