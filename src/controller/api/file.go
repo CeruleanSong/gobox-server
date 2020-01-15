@@ -108,7 +108,7 @@ func FileDownload() echo.HandlerFunc {
 		// Upload the file into the database
 		str, err := bucket.OpenDownloadStream(param)
 		if err != nil {
-			return c.JSON(fasthttp.StatusOK, util.ErrorFILENOTFOUND)
+			return echo.ErrNotFound
 		}
 
 		collection := client.Database("gobox").Collection("fs.metadata")
