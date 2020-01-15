@@ -15,6 +15,9 @@ func initialize() *echo.Echo {
 	// e.Use(middleware.CORS())
 	e.Use(middleware.Recover())
 	// e.Use(middleware.JWT([]byte(config.SECRET)))
+	e.Use(middleware.GzipWithConfig(middleware.GzipConfig{
+		Level: 5,
+	}))
 
 	apiRoute := e.Group("/api")
 	new(controller.APIController).File(apiRoute)
