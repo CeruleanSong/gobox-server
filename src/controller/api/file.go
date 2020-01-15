@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/CeruleanSong/gobox-server/src/config"
@@ -131,6 +132,81 @@ func FileDownload() echo.HandlerFunc {
 		// return c.Blob(200, fileType, buf)
 		return c.Stream(200, fileType, str)
 		// return c.JSON(fasthttp.StatusOK, 0)
+	}
+}
+
+// FileDelete a
+func FileDelete() echo.HandlerFunc {
+	return func(c echo.Context) (err error) {
+
+		var param string = c.Param("id")
+
+		filter := bson.M{"_id": param}
+		filterChunks := bson.M{"files_id": param}
+
+		db := database.Database()
+		client, err := db.Get()
+
+		// bucket, err := gridfs.NewBucket(client.Database("gobox"))
+		// if err != nil {
+		// 	return err
+		// }
+		// delete from gridfs
+		// err = bucket.Delete(filter) // FIXME not working ?!?
+
+		if false {
+			// do nothing
+		} else {
+			// delete metadata
+			collection := client.Database("gobox").Collection("fs.metadata")
+			ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
+			res, err := collection.DeleteOne(ctx, filter)
+			if err != nil {
+				return echo.ErrBadRequest
+			}
+
+			// delete chunks
+			collection = client.Database("gobox").Collection("fs.chunks")
+			ctx, _ = context.WithTimeout(context.Background(), 5*time.Second)
+			res, err = collection.DeleteMany(ctx, filterChunks)
+			if err != nil {
+				return echo.ErrBadRequest
+			}
+
+			// delete files metadata
+			collection = client.Database("gobox").Collection("fs.files")
+			ctx, _ = context.WithTimeout(context.Background(), 5*time.Second)
+			res, err = collection.DeleteOne(ctx, filter)
+			if err != nil {
+				return echo.ErrBadRequest
+			}
+
+			message := func() string {
+				if err != nil {
+					return err.Error()
+				}
+				return ""
+			}()
+
+			return c.JSON(fasthttp.StatusOK, map[string]string{
+				"file":    param,
+				"success": strconv.FormatBool(res.DeletedCount == 1),
+				"message": message,
+			})
+		}
+
+		message := func() string {
+			if err != nil {
+				return err.Error()
+			}
+			return ""
+		}()
+
+		return c.JSON(fasthttp.StatusOK, map[string]string{
+			"file":    param,
+			"success": "false",
+			"message": message,
+		})
 	}
 }
 

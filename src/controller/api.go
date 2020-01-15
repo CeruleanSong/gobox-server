@@ -19,6 +19,8 @@ func (c *APIController) File(g *echo.Group) {
 			g.Any("/upload", api.FileUpload())
 			/* download */
 			g.Any("/download/:id", api.FileDownload())
+			/* delete file */
+			g.Any("/delete/:id", api.FileDelete())
 			/* info */
 			g.Any("/info/:id", api.FileInfo())
 		}
@@ -29,9 +31,10 @@ func (c *APIController) File(g *echo.Group) {
 			authGroup.Any("/login", api.AuthLogin())
 		}
 
-		// gFile := g.Group("")
+		metaGroup := g.Group("/meta")
 		{
-			g.Any("/stats", api.Stats())
+			metaGroup.Any("/stats", api.Stats())
+			metaGroup.Any("/hello", api.Stats())
 		}
 	}
 }
