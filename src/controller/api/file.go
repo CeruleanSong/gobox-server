@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"log"
 	"strconv"
 	"time"
 
@@ -15,7 +16,11 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/valyala/fasthttp"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/gridfs"
+	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/mongo/readconcern"
+	"go.mongodb.org/mongo-driver/mongo/writeconcern"
 )
 
 // FileUpload a
@@ -66,22 +71,26 @@ func FileUpload() echo.HandlerFunc {
 		mime := mimetype.Detect(fileBytes)
 
 		var dbEntry = &model.FileData{
-			NAME:     name,
-			ID:       token,
-			BYTES:    file.Size,
-			TYPE:     mime.String(),
-			UPLOADED: time.Now(),
-			// EXPIRES:  time.Now().Add(time.Hour * 24 * 90),
+			ID:        token,
+			NAME:      name,
+			TYPE:      mime.String(),
+			DOWNLOADS: 0,
+			VIEWS:     0,
+			BYTES:     file.Size,
+			UPLOADED:  time.Now(),
+			EXPIRES:   time.Now().Add(time.Hour * 24 * 90),
 		}
 
 		var res = &model.FileResponce{
-			NAME:     name,
-			ID:       token,
-			URL:      url,
-			BYTES:    file.Size,
-			TYPE:     mime.String(),
-			UPLOADED: time.Now(),
-			EXPIRES:  time.Now().Add(time.Hour * 24 * 90),
+			ID:        token,
+			NAME:      name,
+			TYPE:      mime.String(),
+			DOWNLOADS: "0",
+			VIEWS:     "0",
+			URL:       url,
+			BYTES:     file.Size,
+			UPLOADED:  time.Now(),
+			EXPIRES:   time.Now().Add(time.Hour * 24 * 90),
 		}
 
 		collection := client.Database("gobox").Collection("fs.metadata")
@@ -113,14 +122,39 @@ func FileDownload() echo.HandlerFunc {
 		}
 
 		collection := client.Database("gobox").Collection("fs.metadata")
-		var result model.FileData
 
+		var result model.FileData
 		filter := bson.M{"_id": param}
-		ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
-		err = collection.FindOne(ctx, filter).Decode(&result)
-		if err != nil {
-			return err
-		}
+
+		session, err := client.StartSession()
+		mongo.WithSession(context.Background(), session, func(mctx mongo.SessionContext) error {
+
+			err = mctx.StartTransaction(options.Transaction().
+				SetReadConcern(readconcern.Snapshot()).
+				SetWriteConcern(writeconcern.New(writeconcern.WMajority())),
+			)
+			if err != nil {
+				return err
+			}
+
+			err = collection.FindOne(mctx, filter).Decode(&result)
+			if err != nil {
+				mctx.AbortTransaction(mctx)
+				return err
+			}
+
+			update := bson.M{"downloads": 1, "views": 1}
+			_, err = collection.UpdateOne(mctx, filter, update)
+			if err != nil {
+				log.Println("caught exception during transaction, aborting.")
+				mctx.AbortTransaction(mctx)
+				return err
+			}
+
+			mctx.CommitTransaction(mctx)
+
+			return nil
+		})
 
 		/* set proper headers */
 		c.Response().Header().Set("Content-Length", fmt.Sprintf("%d", result.BYTES))
