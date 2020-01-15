@@ -8,6 +8,12 @@ var ErrorINVALIDAUTH = &model.ErrorResponce{
 	MESSAGE: "Invalid Username and/or Password",
 }
 
+// ErrorDUPLICATE as
+var ErrorDUPLICATE = &model.ErrorResponce{
+	STATUS:  409,
+	MESSAGE: "Duplicate user account",
+}
+
 // ErrorFILENOTFOUND as
 var ErrorFILENOTFOUND = &model.ErrorResponce{
 	STATUS:  404,

@@ -26,6 +26,7 @@ func (c *APIController) File(g *echo.Group) {
 		authGroup := g.Group("/auth")
 		{
 			authGroup.Any("/register", api.AuthRegister())
+			authGroup.Any("/login", api.AuthLogin())
 		}
 
 		// gFile := g.Group("")
