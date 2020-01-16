@@ -34,7 +34,7 @@ func (c *APIController) File(g *echo.Group) {
 		metaGroup := g.Group("/meta")
 		{
 			metaGroup.Any("/stats", api.Stats())
-			metaGroup.Any("/hello", api.Stats())
+			metaGroup.Any("/hello", api.Hello())
 		}
 	}
 }
