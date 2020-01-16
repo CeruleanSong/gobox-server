@@ -47,6 +47,6 @@ func Stats() echo.HandlerFunc {
 func Hello() echo.HandlerFunc {
 	return func(c echo.Context) (err error) {
 		// todo
-		return nil
+		return c.JSON(200, map[string]string{"sucess": "true"})
 	}
 }

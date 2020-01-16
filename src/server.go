@@ -24,6 +24,7 @@ func initialize() *echo.Echo {
 
 	{
 		e.Any("/download/:id", api.FileDownload())
+		e.Any("/info/:id", api.FileInfo())
 	}
 
 	return e
