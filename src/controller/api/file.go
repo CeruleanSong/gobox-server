@@ -122,6 +122,11 @@ func FileDownload() echo.HandlerFunc {
 		var result model.FileData
 		filter := bson.M{"_id": bson.M{"$eq": param}}
 
+		err = collection.FindOne(ctx, filter).Decode(&result)
+		if err != nil {
+			return err
+		}
+
 		update := bson.M{"$set": bson.M{"downloads": 1 + result.DOWNLOADS, "views": 1 + result.VIEWS}}
 		collection.UpdateMany(ctx, filter, update)
 		if err != nil {
@@ -131,7 +136,9 @@ func FileDownload() echo.HandlerFunc {
 		}
 
 		/* set proper headers */
-		c.Response().Header().Set("Content-Length", fmt.Sprintf("%d", result.BYTES))
+		// println(result.DOWNLOADS)
+		// fmt.Printf("%s-%d\n", result.TYPE, result.DOWNLOADS)
+		c.Response().Header().Set("Content-Length", fmt.Sprintf("%x", result.BYTES))
 		c.Response().Header().Set("Connection", "keep-alive")
 		c.Response().Header().Set("Accept-Ranges", "bytes")
 		c.Response().Header().Set("Content-Type", result.TYPE)
