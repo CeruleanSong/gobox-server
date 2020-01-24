@@ -1,6 +1,6 @@
 package model
 
-// FileData u
+// FileData describes a file's metadata in the database
 type FileData struct {
 	ID        string `json:"_id" xml:"_id" bson:"_id"`
 	NAME      string `json:"name" xml:"name" bson:"name"`
@@ -12,7 +12,7 @@ type FileData struct {
 	EXPIRES   string `json:"expires" xml:"expires"`
 }
 
-// FileResponce s
+// FileResponce reponce form the server when performing a file action
 type FileResponce struct {
 	ID        string `json:"_id" xml:"_id" bson:"_id"`
 	NAME      string `json:"name" xml:"name" bson:"name"`
