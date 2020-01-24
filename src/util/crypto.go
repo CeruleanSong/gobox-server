@@ -8,40 +8,37 @@ import (
 	"gopkg.in/square/go-jose.v2"
 )
 
-// Crypto s
+// Crypto collections of security & cryptography functions
 type Crypto struct{}
 
-// COST ss
+// COST cost of the hash with bycrypt algorithm
 const COST int = 7
 
-// Hash s
+// Hash has the specified value
 func Hash(password []byte) []byte {
 	if password == nil {
 		return nil
-	} else {
-		hash, err := bcrypt.GenerateFromPassword([]byte(password), COST)
-		if err != nil {
-			return nil
-		}
-		return hash
 	}
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), COST)
+	if err != nil {
+		return nil
+	}
+	return hash
 }
 
-// Compare s
+// Compare verify a string (password) against a hash
 func Compare(hash []byte, password []byte) bool {
 	if hash == nil || password == nil {
 		return false
-	} else {
-		err := bcrypt.CompareHashAndPassword(hash, password)
-		if err != nil {
-			return false
-		} else {
-			return true
-		}
 	}
+	err := bcrypt.CompareHashAndPassword(hash, password)
+	if err != nil {
+		return false
+	}
+	return true
 }
 
-// CreateEncryptedJWT s
+// CreateEncryptedJWT generates an encrypted JWT
 func CreateEncryptedJWT(payload string) (*jose.JSONWebEncryption, *rsa.PrivateKey, error) {
 	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	if err != nil {
@@ -65,7 +62,7 @@ func CreateEncryptedJWT(payload string) (*jose.JSONWebEncryption, *rsa.PrivateKe
 	return encryption, privateKey, nil
 }
 
-// VerifyEncryptedToken s
+// VerifyEncryptedToken veries an encrypted JWT
 func VerifyEncryptedToken(payload string) (*jose.JSONWebEncryption, *rsa.PrivateKey, error) {
 	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	if err != nil {
