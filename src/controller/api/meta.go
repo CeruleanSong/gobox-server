@@ -15,7 +15,7 @@ var (
 	upgrader = websocket.Upgrader{}
 )
 
-// Stats a
+// Stats show simple server stats
 func Stats() echo.HandlerFunc {
 	return func(c echo.Context) (err error) {
 
@@ -43,7 +43,7 @@ func Stats() echo.HandlerFunc {
 	}
 }
 
-// Hello a
+// Hello gonna do something cool here idk yet
 func Hello() echo.HandlerFunc {
 	return func(c echo.Context) (err error) {
 		// todo

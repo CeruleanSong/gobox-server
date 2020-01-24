@@ -18,7 +18,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/gridfs"
 )
 
-// FileUpload a
+// FileUpload uploads a file to the database
 func FileUpload() echo.HandlerFunc {
 	return func(c echo.Context) (err error) {
 
@@ -98,7 +98,7 @@ func FileUpload() echo.HandlerFunc {
 	}
 }
 
-// FileDownload a
+// FileDownload download a file
 func FileDownload() echo.HandlerFunc {
 	return func(c echo.Context) (err error) {
 
@@ -152,7 +152,7 @@ func FileDownload() echo.HandlerFunc {
 	}
 }
 
-// FileDelete a
+// FileDelete delete a file & its metadata
 func FileDelete() echo.HandlerFunc {
 	return func(c echo.Context) (err error) {
 
@@ -227,7 +227,7 @@ func FileDelete() echo.HandlerFunc {
 	}
 }
 
-// FileInfo a
+// FileInfo display file information
 func FileInfo() echo.HandlerFunc {
 	return func(c echo.Context) (err error) {
 

@@ -14,7 +14,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 )
 
-// AuthRegister a
+// AuthRegister register a new user
 func AuthRegister() echo.HandlerFunc {
 	return func(c echo.Context) (err error) {
 
@@ -63,7 +63,7 @@ func AuthRegister() echo.HandlerFunc {
 	}
 }
 
-// AuthLogin a
+// AuthLogin get an authorization token for a particular user
 func AuthLogin() echo.HandlerFunc {
 	return func(c echo.Context) (err error) {
 
@@ -117,58 +117,3 @@ func AuthLogin() echo.HandlerFunc {
 		return echo.ErrUnauthorized
 	}
 }
-
-// AuthVerify a
-// func AuthVerify() echo.HandlerFunc {
-// 	return func(c echo.Context) (err error) {
-// 		var header string = c.Request().Header.Get("Authorization")
-// 		var email string = c.FormValue("email")
-// 		var password string = c.FormValue("password")
-// 		passwordSlice := []byte(password)
-
-// 		var authorization = strings.Split(header, " ")
-
-// 		token, err := jwt.Parse(authorization[1], func(token *jwt.Token) (interface{}, error) {
-// 			// Don't forget to validate the alg is what you expect:
-// 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-// 				return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
-// 			}
-
-// 			// hmacSampleSecret is a []byte containing your secret, e.g. []byte("my_secret_key")
-// 			return config.SECRET, nil
-// 		})
-
-// 		if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-// 			fmt.Println(claims["foo"], claims["nbf"])
-// 			db := database.Database()
-// 			client, err := db.Get()
-// 			if err != nil {
-// 				return err
-// 			}
-
-// 			var result model.User
-
-// 			collection := client.Database("gobox").Collection("user")
-// 			ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
-
-// 			filter := bson.M{"_id": email}
-
-// 			res := collection.FindOne(ctx, &filter)
-
-// 			res.Decode(&result)
-// 			if err != nil {
-// 				return err
-// 			}
-
-// 			if util.Valid(result.PASSWORD, passwordSlice) {
-// 				// return c.Echo().Use(middleware.JWTConfig())
-// 				return c.JSON(fasthttp.StatusOK, util.ErrorINVALIDAUTH)
-// 			}
-
-// 		} else {
-// 			fmt.Println(err)
-// 		}
-
-// 		return c.JSON(fasthttp.StatusOK, util.ErrorINVALIDAUTH)
-// 	}
-// }
