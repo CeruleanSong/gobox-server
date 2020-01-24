@@ -11,18 +11,23 @@ import (
 func initialize() *echo.Echo {
 	e := echo.New()
 
-	// e.Use(middleware.Logger())
-	// e.Use(middleware.CORS())
+	/********************** middleware **********************/
+
+	e.Use(middleware.CORS())
 	e.Use(middleware.Recover())
-	// e.Use(middleware.JWT([]byte(config.SECRET)))
 	e.Use(middleware.GzipWithConfig(middleware.GzipConfig{
 		Level: 5,
 	}))
 
+	/********************** routes **********************/
+
+	// add routes for api
 	apiRoute := e.Group("/api")
 	new(controller.APIController).File(apiRoute)
 
+	// top level shortcuts
 	{
+		/** api **/
 		e.Any("/download/:id", api.FileDownload())
 		e.Any("/info/:id", api.FileInfo())
 	}
