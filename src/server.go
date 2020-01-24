@@ -24,12 +24,15 @@ func initialize() *echo.Echo {
 	// add routes for api
 	apiRoute := e.Group("/api")
 	new(controller.APIController).File(apiRoute)
+	new(controller.APIController).Auth(apiRoute)
+	new(controller.APIController).Meta(apiRoute)
 
 	// top level shortcuts
 	{
 		/** api **/
 		e.Any("/download/:id", api.FileDownload())
 		e.Any("/info/:id", api.FileInfo())
+		e.Any("/stats", api.Stats())
 	}
 
 	return e

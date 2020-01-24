@@ -16,10 +16,12 @@ type db struct {
 	err    error
 }
 
+// Get grab a refrence to the mongo singleton
 func (d *db) Get() (*mongo.Client, error) {
 	return d.client, d.err
 }
 
+// create creates a singleton refrence to a mongo instance
 func create() *db {
 	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI(config.URLDB))
@@ -32,7 +34,7 @@ func create() *db {
 	return d
 }
 
-// Database s
+// Database returns a refrence to the mongo database
 func Database() *db {
 	if d == nil {
 		client := create()
