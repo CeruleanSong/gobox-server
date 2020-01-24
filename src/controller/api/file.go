@@ -65,6 +65,8 @@ func FileUpload() echo.HandlerFunc {
 		// kind, _ := filetype.Get(fileBytes)
 		mime := mimetype.Detect(fileBytes)
 
+		cTime := time.Now()
+
 		var dbEntry = &model.FileData{
 			ID:        token,
 			NAME:      name,
@@ -72,20 +74,20 @@ func FileUpload() echo.HandlerFunc {
 			DOWNLOADS: 0,
 			VIEWS:     0,
 			BYTES:     file.Size,
-			UPLOADED:  time.Now(),
-			EXPIRES:   time.Now().Add(time.Hour * 24 * 90),
+			UPLOADED:  cTime.Format("2006-01-02"),
+			EXPIRES:   cTime.Add(time.Hour * 24 * 90).Format("2006-01-02"),
 		}
 
 		var res = &model.FileResponce{
-			ID:        token,
-			NAME:      name,
-			TYPE:      mime.String(),
-			DOWNLOADS: "0",
-			VIEWS:     "0",
+			ID:        dbEntry.ID,
+			NAME:      dbEntry.NAME,
+			TYPE:      dbEntry.TYPE,
+			DOWNLOADS: dbEntry.DOWNLOADS,
+			VIEWS:     dbEntry.VIEWS,
 			URL:       url,
-			BYTES:     file.Size,
-			UPLOADED:  time.Now(),
-			EXPIRES:   time.Now().Add(time.Hour * 24 * 90),
+			BYTES:     dbEntry.BYTES,
+			UPLOADED:  dbEntry.UPLOADED,
+			EXPIRES:   dbEntry.EXPIRES,
 		}
 
 		collection := client.Database("gobox").Collection("fs.metadata")
