@@ -23,6 +23,17 @@ func (c *APIController) File(g *echo.Group) {
 		/* info */
 		g.Any("/info/:id", api.FileInfo())
 	}
+
+	{ /*** REST ***/
+		/* upload */
+		g.POST("/file/", api.FileUpload())
+		/* download */
+		g.GET("/file/:id", api.FileDownload())
+		/* info */
+		g.POST("/file/:id", api.FileInfo())
+		/* delete file */
+		g.DELETE("/file/:id", api.FileDelete())
+	}
 }
 
 // Auth collection of routes relating to authentication

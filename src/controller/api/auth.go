@@ -18,12 +18,12 @@ import (
 func AuthRegister() echo.HandlerFunc {
 	return func(c echo.Context) (err error) {
 
-		email := c.FormValue("email")
+		user := c.FormValue("user")
 		password := c.FormValue("password")
 		passwordSlice := []byte(password)
 
 		/* check if empty */
-		if email == "" || password == "" {
+		if user == "" || password == "" {
 			return echo.ErrUnauthorized
 		}
 
@@ -39,17 +39,20 @@ func AuthRegister() echo.HandlerFunc {
 		/* add user to database */
 		collection := client.Database("gobox").Collection("user")
 		ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
-		_, err = collection.InsertOne(ctx, &model.User{EMAIL: email, PASSWORD: hash})
+		_, err = collection.InsertOne(ctx, &model.User{USER: user, PASSWORD: hash})
 		if err != nil {
 			return echo.ErrUnauthorized
 		}
 
 		/* generate token */
-		token := jwt.New(jwt.SigningMethodHS256)
-		claims := token.Claims.(jwt.MapClaims)
-		claims["email"] = email
-		claims["admin"] = false
-		claims["exp"] = time.Now().Add(time.Hour * 720).Unix() // 30 days
+		claims := model.Token{}
+
+		claims.USER = user
+		claims.ADMIN = false
+		claims.ExpiresAt = time.Now().Add(time.Hour * 720).Unix()
+		claims.Issuer = "gobox"
+
+		token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
 		st, err := token.SignedString([]byte(config.SECRET))
 		if err != nil {
@@ -57,7 +60,7 @@ func AuthRegister() echo.HandlerFunc {
 		}
 
 		return c.JSON(http.StatusOK, map[string]string{
-			"email": email,
+			"user":  user,
 			"token": st,
 		})
 	}
@@ -67,12 +70,12 @@ func AuthRegister() echo.HandlerFunc {
 func AuthLogin() echo.HandlerFunc {
 	return func(c echo.Context) (err error) {
 
-		email := c.FormValue("email")
+		user := c.FormValue("user")
 		password := c.FormValue("password")
 		passwordSlice := []byte(password)
 
 		/* check if empty */
-		if email == "" || password == "" {
+		if user == "" || password == "" {
 			return echo.ErrUnauthorized
 		}
 
@@ -87,7 +90,7 @@ func AuthLogin() echo.HandlerFunc {
 		var result model.User
 		collection := client.Database("gobox").Collection("user")
 		ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
-		res := collection.FindOne(ctx, &bson.M{"_id": email})
+		res := collection.FindOne(ctx, &bson.M{"_id": user})
 
 		/* decode user */
 		res.Decode(&result)
@@ -98,18 +101,21 @@ func AuthLogin() echo.HandlerFunc {
 		/* match provided password with database */
 		if util.Compare(result.PASSWORD, passwordSlice) {
 			/* generate token */
-			token := jwt.New(jwt.SigningMethodHS256)
-			claims := token.Claims.(jwt.MapClaims)
-			claims["email"] = email
-			claims["admin"] = false
-			claims["exp"] = time.Now().Add(time.Hour * 720).Unix() // 30 days
+			claims := model.Token{}
+
+			claims.USER = user
+			claims.ADMIN = false
+			claims.ExpiresAt = time.Now().Add(time.Hour * 720).Unix()
+			claims.Issuer = "gobox"
+
+			token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
 			st, err := token.SignedString([]byte(config.SECRET))
 			if err != nil {
 				return err
 			}
 			return c.JSON(http.StatusOK, map[string]string{
-				"email": email,
+				"user":  user,
 				"token": st,
 			})
 		}
